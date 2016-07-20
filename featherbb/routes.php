@@ -39,10 +39,10 @@ Route::group('/topic', function() {
     Route::get('/{id:\d+}/{name:[\w\-]+}/action/{action:[\w\-]+}', '\FeatherBB\Controller\Topic:action')->setName('topicAction');
     Route::get('/{id:\d+}/{name:[\w\-]+}/subscribe', '\FeatherBB\Controller\Topic:subscribe')->add(new IsLogged)->setName('subscribeTopic');
     Route::get('/{id:\d+}/{name:[\w\-]+}/unsubscribe', '\FeatherBB\Controller\Topic:unsubscribe')->add(new IsLogged)->setName('unsubscribeTopic');
-    Route::get('/{id:\d+}/{name:[\w\-]+}/close', '\FeatherBB\Controller\Topic:close')->add(new IsAdmMod)->setName('closeTopic');
-    Route::get('/{id:\d+}/{name:[\w\-]+}/open', '\FeatherBB\Controller\Topic:open')->add(new IsAdmMod)->setName('openTopic');
-    Route::get('/{id:\d+}/{name:[\w\-]+}/stick', '\FeatherBB\Controller\Topic:stick')->add(new IsAdmMod)->setName('stickTopic');
-    Route::get('/{id:\d+}/{name:[\w\-]+}/unstick', '\FeatherBB\Controller\Topic:unstick')->add(new IsAdmMod)->setName('unstickTopic');
+    Route::get('/{id:\d+}/{name:[\w\-]+}/close/{fid:\d+}', '\FeatherBB\Controller\Topic:close')->add(new IsAdmMod)->setName('closeTopic');
+    Route::get('/{id:\d+}/{name:[\w\-]+}/open/{fid:\d+}', '\FeatherBB\Controller\Topic:open')->add(new IsAdmMod)->setName('openTopic');
+    Route::get('/{id:\d+}/{name:[\w\-]+}/stick/{fid:\d+}', '\FeatherBB\Controller\Topic:stick')->add(new IsAdmMod)->setName('stickTopic');
+    Route::get('/{id:\d+}/{name:[\w\-]+}/unstick/{fid:\d+}', '\FeatherBB\Controller\Topic:unstick')->add(new IsAdmMod)->setName('unstickTopic');
     Route::map(['GET', 'POST'], '/{id:\d+}/{name:[\w\-]+}/move/from/{fid:\d+}', '\FeatherBB\Controller\Topic:move')->add(new IsAdmMod)->setName('moveTopic');
     Route::map(['GET', 'POST'], '/{id:\d+}/{name:[\w\-]+}/moderate/forum/{fid:\d+}[/page/{page:\d+}]', '\FeatherBB\Controller\Topic:moderate')->add(new IsAdmMod)->setName('moderateTopic');
 })->add(new CanReadBoard);
@@ -231,3 +231,4 @@ Container::set('errorHandler', function ($c) {
         ))->addTemplate('error.php')->display();
     };
 });
+

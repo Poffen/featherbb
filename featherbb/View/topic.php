@@ -111,7 +111,7 @@ foreach ($post_data as $post) {
             <p class="pagelink conl"><?= $paging_links ?></p>
 <?= $post_link ?>
 <?php
-if (isset($active_page) && $active_page == 'Topic' && User::isAdminMod()) {
+if (isset($active_page) && ($active_page == 'Topic') && ($is_admmod === true)) {
     if (isset($pid)) {
         $parameter = $pid;
     } elseif (isset($page_number) && $page_number != 1) {
@@ -126,15 +126,15 @@ if (isset($active_page) && $active_page == 'Topic' && User::isAdminMod()) {
     echo "\t\t\t\t\t".'<dd><span><a href="'.Router::pathFor('moveTopic', ['id' => $tid, 'name' => Url::url_friendly($cur_topic['subject']), 'fid' => $fid]).'">'.__('Move topic').'</a></span></dd>'."\n";
 
     if ($cur_topic['closed'] == '1') {
-        echo "\t\t\t\t\t".'<dd><span><a href="'.Router::pathFor('openTopic', ['id' => $tid, 'name' => Url::url_friendly($cur_topic['subject'])]).'">'.__('Open topic').'</a></span></dd>'."\n";
+        echo "\t\t\t\t\t".'<dd><span><a href="'.Router::pathFor('openTopic', ['id' => $tid, 'name' => Url::url_friendly($cur_topic['subject']), 'fid' => $fid]).'">'.__('Open topic').'</a></span></dd>'."\n";
     } else {
-        echo "\t\t\t\t\t".'<dd><span><a href="'.Router::pathFor('closeTopic', ['id' => $tid, 'name' => Url::url_friendly($cur_topic['subject'])]).'">'.__('Close topic').'</a></span></dd>'."\n";
+        echo "\t\t\t\t\t".'<dd><span><a href="'.Router::pathFor('closeTopic', ['id' => $tid, 'name' => Url::url_friendly($cur_topic['subject']), 'fid' => $fid]).'">'.__('Close topic').'</a></span></dd>'."\n";
     }
 
     if ($cur_topic['sticky'] == '1') {
-        echo "\t\t\t\t\t".'<dd><span><a href="'.Router::pathFor('unstickTopic', ['id' => $tid, 'name' => Url::url_friendly($cur_topic['subject'])]).'">'.__('Unstick topic').'</a></span></dd>'."\n";
+        echo "\t\t\t\t\t".'<dd><span><a href="'.Router::pathFor('unstickTopic', ['id' => $tid, 'name' => Url::url_friendly($cur_topic['subject']), 'fid' => $fid]).'">'.__('Unstick topic').'</a></span></dd>'."\n";
     } else {
-        echo "\t\t\t\t\t".'<dd><span><a href="'.Router::pathFor('stickTopic', ['id' => $tid, 'name' => Url::url_friendly($cur_topic['subject'])]).'">'.__('Stick topic').'</a></span></dd>'."\n";
+        echo "\t\t\t\t\t".'<dd><span><a href="'.Router::pathFor('stickTopic', ['id' => $tid, 'name' => Url::url_friendly($cur_topic['subject']), 'fid' => $fid]).'">'.__('Stick topic').'</a></span></dd>'."\n";
     }
 
     echo "\t\t\t\t".'</dl>'."\n";
@@ -229,3 +229,4 @@ if ($quickpost) {
 }
 
 Container::get('hooks')->fire('view.topic.end');
+

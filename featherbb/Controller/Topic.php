@@ -93,27 +93,41 @@ class Topic
         View::setPageInfo(array(
             'title' => array(Utils::escape(ForumSettings::get('o_board_title')), Utils::escape($cur_topic['forum_name']), Utils::escape($cur_topic['subject'])),
             'active_page' => 'Topic',
-            'page_number'  =>  $p,
-            'paging_links'  =>  $paging_links,
+            'page_number' => $p,
+            'paging_links' => $paging_links,
             'is_indexed' => true,
             'id' => $args['id'],
             'pid' => $args['pid'],
             'tid' => $args['id'],
             'fid' => $cur_topic['forum_id'],
             'post_data' => $this->model->print_posts($args['id'], $start_from, $cur_topic, $is_admmod),
-            'cur_topic'    =>    $cur_topic,
-            'subscraction'    =>    $subscraction,
+            'cur_topic' => $cur_topic,
+            'subscraction' => $subscraction,
             'post_link' => $post_link,
             'start_from' => $start_from,
-            'quickpost'        =>    $quickpost,
-            'index_questions'        =>    $index_questions,
-            'lang_antispam_questions'        =>    $lang_antispam_questions,
-            'url_forum'        =>    $url_forum,
-            'url_topic'        =>    $url_topic,
+            'quickpost' => $quickpost,
+            'index_questions' => $index_questions,
+            'lang_antispam_questions' => $lang_antispam_questions,
+            'url_forum' => $url_forum,
+            'url_topic' => $url_topic,
+            'is_admmod' => $is_admmod,
         ))->addTemplate('topic.php')->display();
 
         // Increment "num_views" for topic
         $this->model->increment_views($args['id']);
+    }
+
+    private function moderatePermission($fid)
+    {
+        // Fetch mods array from the forum model
+        $forumModel = new \FeatherBB\Model\Forum();
+        $moderators = $forumModel->get_moderators($fid);
+        $mods_array = ($moderators != '') ? unserialize($moderators) : array();
+
+        // Sort out who has permission to moderate
+        $permission = (User::isAdmin() || (User::isAdminMod() && array_key_exists(User::get()->username, $mods_array))) ? true : false;
+
+        return $permission;
     }
 
     public function viewpost($req, $res, $args)
@@ -148,6 +162,10 @@ class Topic
     {
         $args['id'] = Container::get('hooks')->fire('controller.topic.close', $args['id']);
 
+        if ($this->moderatePermission($args['fid']) === false) {
+            throw new Error(__('No permission'), 403);
+        }
+
         $topic = $this->model->setClosed($args['id'], 1);
         return Router::redirect(Router::pathFor('Topic', ['id' => $args['id'], 'name' => Url::url_friendly($topic['subject'])]), __('Close topic redirect'));
     }
@@ -155,6 +173,10 @@ class Topic
     public function open($req, $res, $args)
     {
         $args['id'] = Container::get('hooks')->fire('controller.topic.open', $args['id']);
+
+        if ($this->moderatePermission($args['fid']) === false) {
+            throw new Error(__('No permission'), 403);
+        }
 
         $topic = $this->model->setClosed($args['id'], 0);
         return Router::redirect(Router::pathFor('Topic', ['id' => $args['id'], 'name' => Url::url_friendly($topic['subject'])]), __('Open topic redirect'));
@@ -164,6 +186,10 @@ class Topic
     {
         $args['id'] = Container::get('hooks')->fire('controller.topic.stick', $args['id']);
 
+        if ($this->moderatePermission($args['fid']) === false) {
+            throw new Error(__('No permission'), 403);
+        }
+
         $topic = $this->model->setSticky($args['id'], 1);
         return Router::redirect(Router::pathFor('Topic', ['id' => $args['id'], 'name' => Url::url_friendly($topic['subject'])]), __('Stick topic redirect'));
     }
@@ -171,6 +197,10 @@ class Topic
     public function unstick($req, $res, $args)
     {
         $args['id'] = Container::get('hooks')->fire('controller.topic.unstick', $args['id']);
+
+        if ($this->moderatePermission($args['fid']) === false) {
+            throw new Error(__('No permission'), 403);
+        }
 
         $topic = $this->model->setSticky($args['id'], 0);
         return Router::redirect(Router::pathFor('Topic', ['id' => $args['id'], 'name' => Url::url_friendly($topic['subject'])]), __('Unstick topic redirect'));
@@ -180,6 +210,10 @@ class Topic
     public function move($req, $res, $args)
     {
         $args['id'] = Container::get('hooks')->fire('controller.topic.move', $args['id']);
+
+        if ($this->moderatePermission($args['fid']) === false) {
+            throw new Error(__('No permission'), 403);
+        }
 
         if ($new_fid = Input::post('move_to_forum')) {
             $this->model->move_to($args['fid'], $new_fid, $args['id']);
@@ -205,12 +239,8 @@ class Topic
     {
         Container::get('hooks')->fire('controller.topic.moderate');
 
-        // Make sure that only admmods allowed access this page
-        $forumModel = new \FeatherBB\Model\Forum();
-        $moderators = $forumModel->get_moderators($args['fid']);
-        $mods_array = ($moderators != '') ? unserialize($moderators) : array();
-
-        if (!User::isAdmin() && (!User::isAdminMod() || !array_key_exists(User::get()->username, $mods_array))) {
+        // Only admins or assigned moderators are allowed to access the moderator functions
+        if ($this->moderatePermission($args['fid']) === false) {
             throw new Error(__('No permission'), 403);
         }
 
@@ -290,3 +320,4 @@ class Topic
         return $this->model->handle_actions($args['id'], $args['name'], $args['action']);
     }
 }
+
